@@ -99,9 +99,9 @@ public class SpellingDemo extends JPanel {
         JFrame frame = new JFrame("Spelling Correction Demo");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        File dict = new File("dictionary/english_words.txt");
+        File dict = new File("dictionary/en_AU.dic");
         File sample = new File("dictionary/big.txt");
-        char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+        char[] alphabet = "abcdefghijklmnopqrstuvwxyz'".toCharArray();
         Spellchecker checker = new Spellchecker(dict, sample, alphabet, 2, 5);
 
         //Add contents to the window.

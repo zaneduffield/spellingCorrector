@@ -32,18 +32,15 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     public void setSelectedText(JTextPane tp, String selectedValue) {
         int cp = tp.getCaretPosition();
         try {
-            if (cp == 0 || tp.getText(cp - 1, 1).trim().isEmpty()) {
-                tp.getDocument().insertString(cp, selectedValue, null);
-            } else {
-                int[] word_indices = this.getWordIndicesAtCaret(tp);
-                if (word_indices == null){
-                    return;
-                }
-                int start = word_indices[0];
-                int end = word_indices[1];
-                tp.getDocument().remove(start, end - start);
-                tp.getDocument().insertString(start, selectedValue, null);
+            int[] word_indices = this.getWordIndicesAtCaret(tp);
+            if (word_indices == null){
+                return;
             }
+            int start = word_indices[0];
+            int end = word_indices[1];
+            undecorateWord(tp);
+            tp.getDocument().remove(start, end - start);
+            tp.getDocument().insertString(start, selectedValue, null);
         } catch (BadLocationException e) {
             System.err.println(e);
         }
@@ -59,7 +56,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     }
 
     @Override
-    public void undecorateValidWord(JTextPane tp){
+    public void undecorateWord(JTextPane tp){
         StyledDocument doc = (StyledDocument)tp.getDocument();
         int[] word_indices = this.getWordIndicesAtCaret(tp);
         if (word_indices != null){
@@ -70,14 +67,24 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     private int[] getWordIndicesAtCaret(JTextPane tp){
         try {
             int cp = tp.getCaretPosition();
+            int previousWordIndex;
+            int wordEndIndex;
             if (cp != 0) {
                 String text = tp.getText(cp - 1, 1);
                 if (text.trim().isEmpty()) {
-                    return null;
+                    previousWordIndex = cp;
+                } else {
+                    previousWordIndex = Utilities.getPreviousWord(tp, cp);
                 }
+            } else {
+                previousWordIndex = 0;
             }
-            int previousWordIndex = Utilities.getPreviousWord(tp, cp);
-            int wordEndIndex = Utilities.getWordEnd(tp, cp);
+            String text = tp.getText(cp, 1);
+            if (text.trim().isEmpty()) {
+                wordEndIndex = cp;
+            } else {
+                wordEndIndex = Utilities.getWordEnd(tp, cp);
+            }
             return new int[]{previousWordIndex, wordEndIndex};
         } catch (BadLocationException e) {
             System.err.println(e);
@@ -108,7 +115,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     @Override
     public ArrayList<String> getSuggestions(JTextPane tp) {
         String text = this.getWordAtCaret(tp);
-        if (text != null) {
+        if (text != null && text.length() != 0) {
             return this.correction_provider.apply(text.trim());
         }
         return null;

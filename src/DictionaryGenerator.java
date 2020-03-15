@@ -9,8 +9,11 @@ public class DictionaryGenerator {
         HashMap<String, Integer> dict = new HashMap<>();
         try {
             Scanner sc = new Scanner(words);
-            while (sc.hasNextLine())
-                dict.put(sc.nextLine().toLowerCase(), 0);
+            String word = "";
+            while (sc.hasNextLine()) {
+                word = sc.nextLine().toLowerCase().split("/")[0];
+                dict.put(word, 0);
+            }
             sc = new Scanner(sample);
             String[] line_words;
             while (sc.hasNextLine()) {

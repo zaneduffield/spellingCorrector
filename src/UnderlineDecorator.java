@@ -1,7 +1,6 @@
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyledDocument;
@@ -60,7 +59,7 @@ public class UnderlineDecorator {
                         // underline red
                         correction_client.decorateInvalidWord(pane, invalidWordAttribute);
                     } else {
-                        correction_client.undecorateValidWord(pane);
+                        correction_client.undecorateWord(pane);
                     }
                 });
             }

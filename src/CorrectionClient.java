@@ -11,7 +11,7 @@ public interface CorrectionClient<C extends JComponent> {
 
     void decorateInvalidWord(JTextPane tp, AttributeSet attrs);
 
-    void undecorateValidWord(JTextPane tp);
+    void undecorateWord(JTextPane tp);
 
     boolean isValidWord(C invoker);
 
