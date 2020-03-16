@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     private Function<String, ArrayList<String>> correction_provider;
     private Function<String, Boolean> validity_checker;
+    private ArrayList<String> previous_corrections;
+    private String previous_word = "";
 
     public WordCorrectionClient(ISpellChecker checker) {
         this.correction_provider = checker::getCorrections;
@@ -98,7 +100,12 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     public ArrayList<String> getSuggestions(JTextPane tp) {
         String text = this.getWordAtCaret(tp);
         if (text != null && text.length() != 0) {
-            return this.correction_provider.apply(text.trim());
+            if (text.equals(this.previous_word)){
+                return this.previous_corrections;
+            }
+            this.previous_word = text;
+            this.previous_corrections = this.correction_provider.apply(text.trim());
+            return this.previous_corrections;
         }
         return null;
     }
