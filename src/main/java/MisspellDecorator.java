@@ -1,26 +1,26 @@
+package main.java;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyledDocument;
+import javax.swing.text.*;
 import java.awt.*;
 
-public class UnderlineDecorator <C extends JTextComponent> {
-    private final C component;
+public class MisspellDecorator<C extends JTextComponent>{
     private final StyledDocument doc;
     private final MutableAttributeSet invalidWordAttribute;
     private final CorrectionClient<C> correction_client;
+    private final ErrorDecorator decorator;
+
     private boolean disabled = false;
 
-    public UnderlineDecorator(C component, CorrectionClient<C> correction_client) {
+    public MisspellDecorator(C component, CorrectionClient<C> correction_client, ErrorDecorator decorator) {
         MutableAttributeSet attrs = new SimpleAttributeSet();
         attrs.addAttribute("Underline-Color", Color.red);
         this.invalidWordAttribute = attrs;
 
         this.doc = (StyledDocument)component.getDocument();
-        this.component = component;
+        this.decorator = decorator;
         this.correction_client = correction_client;
         this.init();
     }
@@ -55,10 +55,19 @@ public class UnderlineDecorator <C extends JTextComponent> {
                     return;
                 }
                 SwingUtilities.invokeLater(() -> {
-                    if (!correction_client.isValidWord(component)) {
-                        correction_client.decorateInvalidWord(component, invalidWordAttribute);
-                    } else {
-                        correction_client.clearWordAttributes(component);
+                    // loop over all words
+                    try {
+                        decorator.undecorateAll();
+                        String content = doc.getText(0, doc.getLength());
+                        int index = 0;
+                        for (String word: content.split(" |\\p{Punct}")){
+                            if (!correction_client.isValidWord(word)) {
+                                decorator.decorate(index, index + word.length());
+                            }
+                            index += 1 + word.length();
+                        }
+                    } catch (BadLocationException ex) {
+                        ex.printStackTrace();
                     }
                 });
             }

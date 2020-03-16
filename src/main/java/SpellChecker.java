@@ -1,5 +1,7 @@
+package main.java;
+
+import java.io.InputStream;
 import java.util.*;
-import java.io.File;
 
 public class SpellChecker implements ISpellChecker{
     private HashMap<String, Integer> dictionary;
@@ -7,7 +9,7 @@ public class SpellChecker implements ISpellChecker{
     private int edit_distance;
     private int max_corrections;
 
-    public SpellChecker(File words, File sample_text, char[] alphabet, int edit_distance, int max_corrections){
+    public SpellChecker(InputStream words, InputStream sample_text, char[] alphabet, int edit_distance, int max_corrections){
         this.dictionary = DictionaryGenerator.load(words, sample_text);
         this.alphabet = alphabet;
         this.edit_distance = edit_distance;
@@ -32,7 +34,7 @@ public class SpellChecker implements ISpellChecker{
             next_edits.clear();
         }
 
-        // sort in order of the dictionary count
+        // sort in order of the Spellchecker.dictionary count
         corrections.sort(Comparator.comparing(a -> -this.dictionary.get(a)));
         // remove duplicates
         LinkedHashSet<String> hashSet = new LinkedHashSet<>(corrections);

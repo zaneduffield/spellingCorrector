@@ -1,3 +1,5 @@
+package main.java;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
@@ -38,29 +40,10 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
             }
             int start = word_indices[0];
             int end = word_indices[1];
-            this.clearWordAttributes(tp);
             tp.getDocument().remove(start, end - start);
             tp.getDocument().insertString(start, selectedValue, null);
         } catch (BadLocationException e) {
             System.err.println(e);
-        }
-    }
-
-    @Override
-    public void decorateInvalidWord(JTextPane tp, AttributeSet attrs){
-        StyledDocument doc = (StyledDocument)tp.getDocument();
-        int[] word_indices = this.getWordIndicesAtCaret(tp);
-        if (word_indices != null){
-            doc.setCharacterAttributes(word_indices[0], word_indices[1] - word_indices[0], attrs, false);
-        }
-    }
-
-    @Override
-    public void clearWordAttributes(JTextPane tp){
-        StyledDocument doc = (StyledDocument)tp.getDocument();
-        int[] word_indices = this.getWordIndicesAtCaret(tp);
-        if (word_indices != null){
-            doc.setCharacterAttributes(word_indices[0], word_indices[1] - word_indices[0], new SimpleAttributeSet(), true);
         }
     }
 
@@ -104,8 +87,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
         return null;
     }
 
-    public boolean isValidWord(JTextPane tp) {
-        String word = this.getWordAtCaret(tp);
+    public boolean isValidWord(String word) {
         if (word != null && !word.isEmpty()){
             return this.validity_checker.apply(word);
         }
