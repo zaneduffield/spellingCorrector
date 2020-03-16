@@ -1,6 +1,5 @@
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
-import javax.swing.text.MutableAttributeSet;
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -9,9 +8,9 @@ public interface CorrectionClient<C extends JComponent> {
 
     void setSelectedText(C invoker, String selected_value);
 
-    void decorateInvalidWord(JTextPane tp, AttributeSet attrs);
+    void decorateInvalidWord(C invoker, AttributeSet attrs);
 
-    void undecorateWord(JTextPane tp);
+    void clearWordAttributes(C invoker);
 
     boolean isValidWord(C invoker);
 

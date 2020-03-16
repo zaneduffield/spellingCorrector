@@ -2,39 +2,36 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicTextPaneUI;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.function.Function;
 
 public class SpellingDemo extends JPanel {
-    protected JTextArea textArea;
-    private final static String newline = "\n";
-
-    public SpellingDemo(Function<String, ArrayList<String>> correction_provider, Function<String, Boolean> validity_checker) {
+    public SpellingDemo(ISpellChecker checker) {
         super(new GridBagLayout());
 
-//        textField.addActionListener(this);
-
         JTextPane text_pane = new JTextPane();
+        text_pane.setPreferredSize(new Dimension(400, 300));
+        text_pane.setEditable(true);
         Font font = new Font("Verdana", Font.PLAIN, 14);
         text_pane.setFont(font);
-        text_pane.setEditorKit(new CustomEditorKit());
-        text_pane.setEditable(true);
-        text_pane.setPreferredSize(new Dimension(400, 300));
-        JScrollPane scrollPane = new JScrollPane(text_pane);
-        WordCorrectionClient correction_client = new WordCorrectionClient(correction_provider, validity_checker);
-        CorrectionDropdownDecorator.decorate(text_pane, correction_client);
-        UnderlineDecorator.decorate(text_pane, correction_client);
 
-        //Add Components to this panel.
+        // Custom rendering for underlines
+        text_pane.setEditorKit(new CustomEditorKit());
+
+        // Attach decorating listeners
+        WordCorrectionClient correction_client = new WordCorrectionClient(checker);
+        new CorrectionDropdownDecorator<>(text_pane, correction_client);
+        new UnderlineDecorator<>(text_pane, correction_client);
+
+        // Add Components to this panel.
         GridBagConstraints c = new GridBagConstraints();
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1.0;
         c.weighty = 1.0;
+        JScrollPane scrollPane = new JScrollPane(text_pane);
         add(scrollPane, c);
     }
 
@@ -80,7 +77,7 @@ public class SpellingDemo extends JPanel {
 
         public void paint(Graphics g, Shape a){
             super.paint(g, a);
-            //Do whatever other painting here;
+            // Extra painting here
             Color c = (Color)getElement().getAttributes().getAttribute("Underline-Color");
             if(c != null){
                 int y = a.getBounds().y + (int)getGlyphPainter().getAscent(this);
@@ -95,26 +92,28 @@ public class SpellingDemo extends JPanel {
     }
 
     private static void init() {
-        //Create and set up the window.
+        // Create and set up the window.
         JFrame frame = new JFrame("Spelling Correction Demo");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        File dict = new File("dictionary/en_AU.dic");
+        // Load dictionary
+        File dict = new File("dictionary/english_words.txt");
         File sample = new File("dictionary/big.txt");
-        char[] alphabet = "abcdefghijklmnopqrstuvwxyz'".toCharArray();
-        Spellchecker checker = new Spellchecker(dict, sample, alphabet, 2, 5);
+        String letters = "abcdefghijklmnopqrstuvwxyz";
+        String symbols = "'";
+        char[] alphabet = (letters + symbols).toCharArray();
 
-        //Add contents to the window.
-        frame.add(new SpellingDemo(checker::getCorrections, checker::isValid));
+        SpellChecker checker = new SpellChecker(dict, sample, alphabet, 2, 5);
 
-        //Display the window.
+        // Add contents
+        frame.add(new SpellingDemo(checker));
+
+        // Display
         frame.pack();
         frame.setVisible(true);
     }
 
     public static void main(String[] args){
-        //Schedule a job for the event dispatch thread:
-        //creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 init();

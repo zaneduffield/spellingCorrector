@@ -1,8 +1,4 @@
 import javax.swing.*;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -11,28 +7,28 @@ import java.util.ArrayList;
 
 import static java.awt.event.KeyEvent.*;
 
-public class CorrectionDropdownDecorator {
-    private final JTextPane component;
-    private final CorrectionClient<JTextPane> correction_client;
+public class CorrectionDropdownDecorator<C extends JTextComponent> {
+    private final C component;
+    private final CorrectionClient<C> correction_client;
     private JPopupMenu popup_menu;
     private JList<String> list_comp;
     DefaultListModel<String> list_model;
-    private boolean disable_text_event;
+    private boolean disabled;
 
-    public CorrectionDropdownDecorator(JTextPane component, CorrectionClient<JTextPane> correction_client) {
+    public CorrectionDropdownDecorator(C component, CorrectionClient<C> correction_client) {
         this.component = component;
         this.correction_client = correction_client;
-    }
-
-    public static void decorate(JTextPane component, CorrectionClient<JTextPane> correction_client) {
-        CorrectionDropdownDecorator d = new CorrectionDropdownDecorator(component, correction_client);
-        d.init();
+        this.init();
     }
 
     public void init() {
         initPopup();
         initSuggestionCompListener();
         initInvokerKeyListeners();
+    }
+
+    public void setDisabled(boolean disabled){
+        this.disabled = disabled;
     }
 
     private void initPopup() {
@@ -47,7 +43,7 @@ public class CorrectionDropdownDecorator {
 
     private void initSuggestionCompListener() {
         component.addCaretListener(e -> {
-            if (disable_text_event) {
+            if (disabled) {
                 return;
             }
             SwingUtilities.invokeLater(() -> {
@@ -97,9 +93,9 @@ public class CorrectionDropdownDecorator {
             if (selectedIndex != -1) {
                 popup_menu.setVisible(false);
                 String selectedValue = list_comp.getSelectedValue();
-                disable_text_event = true;
+                disabled = true;
                 correction_client.setSelectedText(component, selectedValue);
-                disable_text_event = false;
+                disabled = false;
                 e.consume();
             }
         }

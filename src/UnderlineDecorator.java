@@ -1,36 +1,36 @@
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 
-public class UnderlineDecorator {
-    private final JTextPane pane;
+public class UnderlineDecorator <C extends JTextComponent> {
+    private final C component;
     private final StyledDocument doc;
     private final MutableAttributeSet invalidWordAttribute;
-    private final CorrectionClient<JTextPane> correction_client;
-    DefaultListModel<String> list_model;
-    private boolean disable_text_event;
+    private final CorrectionClient<C> correction_client;
+    private boolean disabled = false;
 
-    public UnderlineDecorator(JTextPane pane, CorrectionClient<JTextPane> correction_client) {
+    public UnderlineDecorator(C component, CorrectionClient<C> correction_client) {
         MutableAttributeSet attrs = new SimpleAttributeSet();
         attrs.addAttribute("Underline-Color", Color.red);
         this.invalidWordAttribute = attrs;
 
-        this.doc = (StyledDocument)pane.getDocument();
-        this.pane = pane;
+        this.doc = (StyledDocument)component.getDocument();
+        this.component = component;
         this.correction_client = correction_client;
-    }
-
-    public static void decorate(JTextPane component, CorrectionClient<JTextPane> correction_client) {
-        UnderlineDecorator d = new UnderlineDecorator(component, correction_client);
-        d.init();
+        this.init();
     }
 
     public void init() {
         initListener();
+    }
+
+    public void setDisabled(boolean disabled){
+        this.disabled = disabled;
     }
 
     private void initListener() {
@@ -47,19 +47,18 @@ public class UnderlineDecorator {
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-//                update(e);
+                // do nothing when attributes are changed (infinite loop otherwise)
             }
 
             private void update(DocumentEvent e) {
-                if (disable_text_event) {
+                if (disabled) {
                     return;
                 }
                 SwingUtilities.invokeLater(() -> {
-                    if (!correction_client.isValidWord(pane)) {
-                        // underline red
-                        correction_client.decorateInvalidWord(pane, invalidWordAttribute);
+                    if (!correction_client.isValidWord(component)) {
+                        correction_client.decorateInvalidWord(component, invalidWordAttribute);
                     } else {
-                        correction_client.undecorateWord(pane);
+                        correction_client.clearWordAttributes(component);
                     }
                 });
             }

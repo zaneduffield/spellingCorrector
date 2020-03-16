@@ -4,14 +4,15 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     private Function<String, ArrayList<String>> correction_provider;
     private Function<String, Boolean> validity_checker;
 
-    public WordCorrectionClient(Function<String, ArrayList<String>> correction_provider, Function<String, Boolean> validity_checker) {
-        this.correction_provider = correction_provider;
-        this.validity_checker = validity_checker;
+    public WordCorrectionClient(ISpellChecker checker) {
+        this.correction_provider = checker::getCorrections;
+        this.validity_checker = checker::isValid;
     }
 
     @Override
@@ -30,7 +31,6 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
 
     @Override
     public void setSelectedText(JTextPane tp, String selectedValue) {
-        int cp = tp.getCaretPosition();
         try {
             int[] word_indices = this.getWordIndicesAtCaret(tp);
             if (word_indices == null){
@@ -38,7 +38,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
             }
             int start = word_indices[0];
             int end = word_indices[1];
-            undecorateWord(tp);
+            this.clearWordAttributes(tp);
             tp.getDocument().remove(start, end - start);
             tp.getDocument().insertString(start, selectedValue, null);
         } catch (BadLocationException e) {
@@ -56,7 +56,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     }
 
     @Override
-    public void undecorateWord(JTextPane tp){
+    public void clearWordAttributes(JTextPane tp){
         StyledDocument doc = (StyledDocument)tp.getDocument();
         int[] word_indices = this.getWordIndicesAtCaret(tp);
         if (word_indices != null){
@@ -71,7 +71,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
             int wordEndIndex;
             if (cp != 0) {
                 String text = tp.getText(cp - 1, 1);
-                if (text.trim().isEmpty()) {
+                if (text.trim().isEmpty() || Pattern.matches("\\p{Punct}", text)) {
                     previousWordIndex = cp;
                 } else {
                     previousWordIndex = Utilities.getPreviousWord(tp, cp);
@@ -80,7 +80,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
                 previousWordIndex = 0;
             }
             String text = tp.getText(cp, 1);
-            if (text.trim().isEmpty()) {
+            if (text.trim().isEmpty() || Pattern.matches("\\p{Punct}", text)) {
                 wordEndIndex = cp;
             } else {
                 wordEndIndex = Utilities.getWordEnd(tp, cp);
@@ -106,7 +106,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
 
     public boolean isValidWord(JTextPane tp) {
         String word = this.getWordAtCaret(tp);
-        if (word != null){
+        if (word != null && !word.isEmpty()){
             return this.validity_checker.apply(word);
         }
         return true;
