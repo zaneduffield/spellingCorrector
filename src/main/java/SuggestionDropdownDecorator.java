@@ -9,21 +9,26 @@ import java.util.ArrayList;
 
 import static java.awt.event.KeyEvent.*;
 
-public class CorrectionDropdownDecorator<C extends JTextComponent> {
+/**
+ * Creates and manages the UI for the suggestions provided by a SuggestionClient in the form of a popup.
+ * Listens for caret changes in the provided component and provides corrections for the word at the caret position.
+ * @param <C> the text component to be decorated
+ */
+public class SuggestionDropdownDecorator<C extends JTextComponent> {
     private final C component;
-    private final CorrectionClient<C> correction_client;
+    private final SuggestionClient<C> suggestion_client;
     private JPopupMenu popup_menu;
     private JList<String> list_comp;
     DefaultListModel<String> list_model;
     private boolean disabled;
 
-    public CorrectionDropdownDecorator(C component, CorrectionClient<C> correction_client) {
+    public SuggestionDropdownDecorator(C component, SuggestionClient<C> suggestion_client) {
         this.component = component;
-        this.correction_client = correction_client;
+        this.suggestion_client = suggestion_client;
         this.init();
     }
 
-    public void init() {
+    private void init() {
         initPopup();
         initSuggestionCompListener();
         initInvokerKeyListeners();
@@ -49,7 +54,7 @@ public class CorrectionDropdownDecorator<C extends JTextComponent> {
                 return;
             }
             SwingUtilities.invokeLater(() -> {
-                ArrayList<String> suggestions = correction_client.getSuggestions(component);
+                ArrayList<String> suggestions = suggestion_client.getSuggestions(component);
                 if (suggestions != null && !suggestions.isEmpty()) {
                     showPopup(suggestions);
                 } else {
@@ -62,7 +67,7 @@ public class CorrectionDropdownDecorator<C extends JTextComponent> {
     private void showPopup(ArrayList<String> suggestions) {
         list_model.clear();
         suggestions.forEach(list_model::addElement);
-        Point p = correction_client.getPopupLocation(component);
+        Point p = suggestion_client.getPopupLocation(component);
         if (p == null) {
             return;
         }
@@ -96,7 +101,7 @@ public class CorrectionDropdownDecorator<C extends JTextComponent> {
                 popup_menu.setVisible(false);
                 String selectedValue = list_comp.getSelectedValue();
                 disabled = true;
-                correction_client.setSelectedText(component, selectedValue);
+                suggestion_client.setSelectedText(component, selectedValue);
                 disabled = false;
                 e.consume();
             }

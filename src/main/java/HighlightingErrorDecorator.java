@@ -2,6 +2,9 @@ package main.java;
 
 import javax.swing.text.*;
 
+/**
+ * Decorates errors using a highlighter and painter for some document
+ */
 public class HighlightingErrorDecorator implements ErrorDecorator{
     private final DefaultHighlighter highlighter;
     private final DefaultHighlighter.DefaultHighlightPainter painter;

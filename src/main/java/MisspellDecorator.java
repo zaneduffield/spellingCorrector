@@ -4,28 +4,26 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.*;
-import java.awt.*;
 
+/**
+ * Listens for changes in the provided component's document and provides decorates words deemed invalid by the
+ * correction client.
+ * @param <C> the text component to be decorated
+ */
 public class MisspellDecorator<C extends JTextComponent>{
     private final StyledDocument doc;
-    private final MutableAttributeSet invalidWordAttribute;
-    private final CorrectionClient<C> correction_client;
+    private final SuggestionClient<C> correction_client;
     private final ErrorDecorator decorator;
-
     private boolean disabled = false;
 
-    public MisspellDecorator(C component, CorrectionClient<C> correction_client, ErrorDecorator decorator) {
-        MutableAttributeSet attrs = new SimpleAttributeSet();
-        attrs.addAttribute("Underline-Color", Color.red);
-        this.invalidWordAttribute = attrs;
-
+    public MisspellDecorator(C component, SuggestionClient<C> correction_client, ErrorDecorator decorator) {
         this.doc = (StyledDocument)component.getDocument();
         this.decorator = decorator;
         this.correction_client = correction_client;
         this.init();
     }
 
-    public void init() {
+    private void init() {
         initListener();
     }
 
@@ -55,7 +53,8 @@ public class MisspellDecorator<C extends JTextComponent>{
                     return;
                 }
                 SwingUtilities.invokeLater(() -> {
-                    // loop over all words
+                    // inefficient to loop over all words every time but attempting to change only the decoration of
+                    // a changed section proved quite difficult
                     try {
                         decorator.undecorateAll();
                         String content = doc.getText(0, doc.getLength());

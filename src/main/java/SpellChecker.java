@@ -3,12 +3,22 @@ package main.java;
 import java.io.InputStream;
 import java.util.*;
 
-public class SpellChecker implements ISpellChecker{
+/**
+ * Provides corrections according to spelling as defined in a dictionary.
+ */
+public class SpellChecker implements Corrector {
     private HashMap<String, Integer> dictionary;
     private char[] alphabet;
     private int edit_distance;
     private int max_corrections;
 
+    /**
+     * @param words stream of words to load into dictionary
+     * @param sample_text sample text used to estimate word probabilities
+     * @param alphabet array of characters defining the alphabet
+     * @param edit_distance maximum edit distance for corrections when searching
+     * @param max_corrections maximum number of corrections to find when searching
+     */
     public SpellChecker(InputStream words, InputStream sample_text, char[] alphabet, int edit_distance, int max_corrections){
         this.dictionary = DictionaryGenerator.load(words, sample_text);
         this.alphabet = alphabet;
@@ -34,12 +44,12 @@ public class SpellChecker implements ISpellChecker{
             next_edits.clear();
         }
 
-        // sort in order of the Spellchecker.dictionary count
+        // sort in order of the Spellchecker dictionary count
         corrections.sort(Comparator.comparing(a -> -this.dictionary.get(a)));
         // remove duplicates
         LinkedHashSet<String> hashSet = new LinkedHashSet<>(corrections);
         corrections = new ArrayList<>(hashSet);
-
+        // trim to size
         if (corrections.size() > this.max_corrections){
             corrections.subList(this.max_corrections, corrections.size()).clear();
         }

@@ -5,6 +5,12 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 public class DictionaryGenerator {
+    /**
+     * Loads words into a HashMap dictionary using a sample file to estimate word probabilities.
+     * @param words stream of dictionary words separated by newline characters
+     * @param sample stream of sample text
+     * @return a dictionary from valid words to a number indicating the likelihood of that word occurring
+     */
     public static HashMap<String, Integer> load(InputStream words, InputStream sample){
         HashMap<String, Integer> dict = new HashMap<>();
         Scanner sc = new Scanner(words);

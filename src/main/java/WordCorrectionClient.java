@@ -8,23 +8,31 @@ import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class WordCorrectionClient implements CorrectionClient<JTextPane> {
+/**
+ * @see SuggestionClient
+ * Bases everything on the location of the caret in the document.
+ * Sets the popup location as the start of the word at the caret.
+ * Sets selected text by replacing the word at the caret.
+ * Determines valid word by validity of the word at the caret.
+ * Gets suggestions based on the word at the caret.
+ */
+public class WordCorrectionClient implements SuggestionClient<JTextPane> {
     private Function<String, ArrayList<String>> correction_provider;
     private Function<String, Boolean> validity_checker;
     private ArrayList<String> previous_corrections;
     private String previous_word = "";
 
-    public WordCorrectionClient(ISpellChecker checker) {
+    public WordCorrectionClient(Corrector checker) {
         this.correction_provider = checker::getCorrections;
         this.validity_checker = checker::isValid;
     }
 
     @Override
-    public Point getPopupLocation(JTextPane tp) {
-        int[] word_indices = this.getWordIndicesAtCaret(tp);
+    public Point getPopupLocation(JTextPane component) {
+        int[] word_indices = this.getWordIndicesAtCaret(component);
         if (word_indices != null){
             try {
-                Rectangle2D rectangle2D = tp.modelToView2D(word_indices[0]);
+                Rectangle2D rectangle2D = component.modelToView2D(word_indices[0]);
                 return new Point((int) rectangle2D.getX(), (int) (rectangle2D.getY() + rectangle2D.getHeight()));
             } catch (BadLocationException e) {
                 System.err.println(e);
@@ -34,16 +42,16 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     }
 
     @Override
-    public void setSelectedText(JTextPane tp, String selectedValue) {
+    public void setSelectedText(JTextPane component, String suggestion) {
         try {
-            int[] word_indices = this.getWordIndicesAtCaret(tp);
+            int[] word_indices = this.getWordIndicesAtCaret(component);
             if (word_indices == null){
                 return;
             }
             int start = word_indices[0];
             int end = word_indices[1];
-            tp.getDocument().remove(start, end - start);
-            tp.getDocument().insertString(start, selectedValue, null);
+            component.getDocument().remove(start, end - start);
+            component.getDocument().insertString(start, suggestion, null);
         } catch (BadLocationException e) {
             System.err.println(e);
         }
@@ -89,6 +97,7 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
         return null;
     }
 
+    @Override
     public boolean isValidWord(String word) {
         if (word != null && !word.isEmpty()){
             return this.validity_checker.apply(word);
@@ -97,8 +106,8 @@ public class WordCorrectionClient implements CorrectionClient<JTextPane> {
     }
 
     @Override
-    public ArrayList<String> getSuggestions(JTextPane tp) {
-        String text = this.getWordAtCaret(tp);
+    public ArrayList<String> getSuggestions(JTextPane component) {
+        String text = this.getWordAtCaret(component);
         if (text != null && text.length() != 0) {
             if (text.equals(this.previous_word)){
                 return this.previous_corrections;

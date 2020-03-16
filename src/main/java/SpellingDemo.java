@@ -5,9 +5,10 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
 import java.awt.*;
 import java.io.*;
+import java.util.Scanner;
 
 public class SpellingDemo extends JPanel {
-    public SpellingDemo(ISpellChecker checker) {
+    public SpellingDemo(Corrector checker) {
         super(new GridBagLayout());
 
         JTextPane text_pane = new JTextPane();
@@ -22,7 +23,7 @@ public class SpellingDemo extends JPanel {
 
         // Attach decorating listeners
         WordCorrectionClient correction_client = new WordCorrectionClient(checker);
-        new CorrectionDropdownDecorator<>(text_pane, correction_client);
+        new SuggestionDropdownDecorator<>(text_pane, correction_client);
         new MisspellDecorator<>(text_pane, correction_client, new HighlightingErrorDecorator(highlighter, painter));
 
         // Add Components to this panel.
@@ -43,11 +44,10 @@ public class SpellingDemo extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Load Spellchecker.dictionary
-        InputStream dict = SpellingDemo.class.getResourceAsStream("/main/resources/english_words.txt");
-        InputStream sample = SpellingDemo.class.getResourceAsStream("/main/resources/big.txt");
-        String letters = "abcdefghijklmnopqrstuvwxyz";
-        String symbols = "'";
-        char[] alphabet = (letters + symbols).toCharArray();
+        InputStream dict = SpellingDemo.class.getResourceAsStream("/main/resources/words.txt");
+        InputStream sample = SpellingDemo.class.getResourceAsStream("/main/resources/sample.txt");
+        Scanner sc = new Scanner(SpellingDemo.class.getResourceAsStream("/main/resources/alphabet.txt"));
+        char[] alphabet = (sc.nextLine()).toCharArray();
 
         SpellChecker checker = new SpellChecker(dict, sample, alphabet, 2, 5);
 
