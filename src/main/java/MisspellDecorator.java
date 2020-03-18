@@ -59,7 +59,7 @@ public class MisspellDecorator<C extends JTextComponent>{
                         decorator.undecorateAll();
                         String content = doc.getText(0, doc.getLength());
                         int index = 0;
-                        for (String word: content.split(" |\\p{Punct}")){
+                        for (String word: content.split(" |(\\p{Punct} && [^'])|\n")){
                             if (!correction_client.isValidWord(word)) {
                                 decorator.decorate(index, index + word.length());
                             }
